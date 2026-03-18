@@ -1,4 +1,3 @@
-
 function isValidUrl(urlString: string): boolean {
 	try {
 		const url = new URL(urlString)
@@ -102,7 +101,8 @@ export async function GET(request: Request) {
 				status: 200,
 				headers: {
 					"Content-Type": contentType || "application/octet-stream",
-					"Cache-Control": "public, s-maxage=3600, stale-while-revalidate=86400",
+					"Cache-Control":
+						"public, s-maxage=3600, stale-while-revalidate=86400",
 					"Access-Control-Allow-Origin": "*",
 				},
 			})

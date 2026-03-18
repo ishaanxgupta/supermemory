@@ -39,8 +39,7 @@ export function PdfViewer({ url }: PdfViewerProps) {
 		setLoading(false)
 	}
 
-	const fileUrl =
-		url || "http://www.pdf995.com/samples/pdf.pdf"
+	const fileUrl = url || "http://www.pdf995.com/samples/pdf.pdf"
 
 	const isBlob = fileUrl.startsWith("blob:")
 	const isLocal =
@@ -49,9 +48,7 @@ export function PdfViewer({ url }: PdfViewerProps) {
 		fileUrl.startsWith("http://127.0.0.1")
 
 	const proxiedUrl =
-		isBlob || isLocal
-			? fileUrl
-			: `/api/proxy?url=${encodeURIComponent(fileUrl)}`
+		isBlob || isLocal ? fileUrl : `/api/proxy?url=${encodeURIComponent(fileUrl)}`
 
 	return (
 		<div className="flex flex-col h-full w-full overflow-hidden scrollbar-thin">
