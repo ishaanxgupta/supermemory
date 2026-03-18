@@ -60,6 +60,7 @@
     "@total-typescript/tsconfig": "^1.0.4",
     "@types/pg": "^8.15.4",
     "drizzle-kit": "^0.31.4",
+    "mitata": "^1.0.34",
     "turbo": "^2.5.4",
     "typescript": "5.8.3",
     "wrangler": "^4.42.2"

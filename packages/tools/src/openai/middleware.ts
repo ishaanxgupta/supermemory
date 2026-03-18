@@ -54,14 +54,13 @@ interface SupermemoryProfileSearch {
 const getLastUserMessage = (
 	messages: OpenAI.Chat.Completions.ChatCompletionMessageParam[],
 ) => {
-	const lastUserMessage = messages
-		.slice()
-		.reverse()
-		.find((msg) => msg.role === "user")
-
-	return typeof lastUserMessage?.content === "string"
-		? lastUserMessage.content
-		: ""
+	for (let i = messages.length - 1; i >= 0; i--) {
+		if (messages[i].role === "user") {
+			const content = messages[i].content
+			return typeof content === "string" ? content : ""
+		}
+	}
+	return ""
 }
 
 /**
