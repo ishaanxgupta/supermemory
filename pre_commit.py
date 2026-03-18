@@ -1,0 +1,2 @@
+from pre_commit_instructions import pre_commit_instructions
+print(pre_commit_instructions())

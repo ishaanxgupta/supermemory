@@ -553,10 +553,13 @@ class SupermemoryOpenAIWrapper:
             self._logger.warn(
                 f"Background tasks did not complete within {timeout}s timeout"
             )
-            # Cancel remaining tasks
-            for task in self._background_tasks:
-                if not task.done():
-                    task.cancel()
+            # Cancel remaining tasks and wait for cancellation to complete
+            tasks_to_cancel = [task for task in self._background_tasks if not task.done()]
+            for task in tasks_to_cancel:
+                task.cancel()
+
+            if tasks_to_cancel:
+                await asyncio.gather(*tasks_to_cancel, return_exceptions=True)
             raise
 
     def cancel_background_tasks(self) -> None:
