@@ -50,10 +50,9 @@ export { convertProfileToMarkdown } from "../shared"
 export const getLastUserMessage = (
 	params: LanguageModelCallOptions,
 ): string | undefined => {
-	const lastUserMessage = params.prompt
-		.slice()
-		.reverse()
-		.find((prompt: LanguageModelMessage) => prompt.role === "user")
+	const lastUserMessage = params.prompt.findLast(
+		(prompt: LanguageModelMessage) => prompt.role === "user",
+	)
 
 	if (!lastUserMessage) {
 		return undefined
