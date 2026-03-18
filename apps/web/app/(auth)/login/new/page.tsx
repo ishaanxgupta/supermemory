@@ -102,6 +102,9 @@ export default function LoginPage() {
 		if (redirectUrl) {
 			try {
 				finalUrl = new URL(redirectUrl, origin)
+				if (finalUrl.origin !== origin) {
+					finalUrl = new URL(origin)
+				}
 			} catch {
 				finalUrl = new URL(origin)
 			}
