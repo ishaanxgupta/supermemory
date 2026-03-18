@@ -235,7 +235,7 @@ def verify_migration(api_key: str, expected_count: int):
 
     try:
         # Check imported memories
-        result = client.documents.list(container_tags=["imported_from_mem0"], limit=100)
+        result = client.documents.list(container_tags=["imported_from_mem0"], limit=3)
 
         total_imported = result["pagination"]["totalItems"]
         print(f"✅ Found {total_imported} imported memories in Supermemory")
