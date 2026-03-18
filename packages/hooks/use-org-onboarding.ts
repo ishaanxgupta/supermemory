@@ -7,10 +7,6 @@ import { authClient } from "@lib/auth"
 /**
  * DB-backed onboarding completion hook for the new app flow.
  * Uses consumer org `metadata.isOnboarded` instead of localStorage.
- *
- * TODO: remove this after the feature flag is removed
- * This hook is for the new app flow only (feature-flagged `nova-alpha-access`).
- * The old onboarding flow will continue to use `useOnboardingStorage` (localStorage).
  */
 export function useOrgOnboarding() {
 	const { org, updateOrgMetadata } = useAuth()
