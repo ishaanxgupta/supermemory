@@ -247,13 +247,21 @@ export const ListMemoriesQuerySchema = z
 					"Optional tags this memory should be containerized by. This can be an ID for your user, a project ID, or any other identifier you wish to use to group memories.",
 				example: ["user_123", "project_123"],
 			}),
-		// TODO: Improve filter schema
 		filters: z
-			.string()
+			.preprocess((val) => {
+				if (typeof val === "string") {
+					try {
+						return JSON.parse(val)
+					} catch {
+						return val
+					}
+				}
+				return val
+			}, SearchFiltersSchema)
 			.optional()
 			.openapi({
 				description: "Optional filters to apply to the search",
-				example: JSON.stringify({
+				example: {
 					AND: [
 						{
 							key: "group",
@@ -268,7 +276,7 @@ export const ListMemoriesQuerySchema = z
 							value: "1742745777",
 						},
 					],
-				}),
+				},
 			}),
 		limit: z
 			.string()
@@ -302,7 +310,7 @@ export const ListMemoriesQuerySchema = z
 	.openapi({
 		description: "Query parameters for listing memories",
 		example: {
-			filters: JSON.stringify({
+			filters: {
 				AND: [
 					{
 						key: "group",
@@ -317,7 +325,7 @@ export const ListMemoriesQuerySchema = z
 						value: "1742745777",
 					},
 				],
-			}),
+			},
 			limit: 10,
 			order: "desc",
 			page: 1,
