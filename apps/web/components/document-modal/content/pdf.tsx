@@ -39,6 +39,20 @@ export function PdfViewer({ url }: PdfViewerProps) {
 		setLoading(false)
 	}
 
+	const fileUrl =
+		url || "http://www.pdf995.com/samples/pdf.pdf"
+
+	const isBlob = fileUrl.startsWith("blob:")
+	const isLocal =
+		fileUrl.startsWith("/") ||
+		fileUrl.startsWith("http://localhost") ||
+		fileUrl.startsWith("http://127.0.0.1")
+
+	const proxiedUrl =
+		isBlob || isLocal
+			? fileUrl
+			: `/api/proxy?url=${encodeURIComponent(fileUrl)}`
+
 	return (
 		<div className="flex flex-col h-full w-full overflow-hidden scrollbar-thin">
 			{loading && (
@@ -53,11 +67,7 @@ export function PdfViewer({ url }: PdfViewerProps) {
 			)}
 			<div className="flex-1 overflow-auto w-full">
 				<Document
-					file={
-						url ||
-						"https://corsproxy.io/?" +
-							encodeURIComponent("http://www.pdf995.com/samples/pdf.pdf")
-					}
+					file={proxiedUrl}
 					onLoadSuccess={onDocumentLoadSuccess}
 					onLoadError={onDocumentLoadError}
 					loading={null}
