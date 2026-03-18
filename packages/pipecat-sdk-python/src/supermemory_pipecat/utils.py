@@ -62,28 +62,16 @@ def deduplicate_memories(
         search_results: List of search result dicts with 'memory' and 'updatedAt'.
     """
     seen = set()
-
-    def unique_strings(memories: List[str]) -> List[str]:
-        out = []
-        for m in memories:
-            if m not in seen:
-                seen.add(m)
-                out.append(m)
-        return out
-
-    def unique_search(results: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
-        out = []
-        for r in results:
-            memory = r.get("memory", "")
-            if memory and memory not in seen:
-                seen.add(memory)
-                out.append(r)
-        return out
+    seen_add = seen.add
 
     return {
-        "static": unique_strings(static),
-        "dynamic": unique_strings(dynamic),
-        "search_results": unique_search(search_results),
+        "static": [m for m in static if m not in seen and not seen_add(m)],
+        "dynamic": [m for m in dynamic if m not in seen and not seen_add(m)],
+        "search_results": [
+            r
+            for r in search_results
+            if (m := r.get("memory")) and m not in seen and not seen_add(m)
+        ],
     }
 
 
