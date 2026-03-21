@@ -1,4 +1,6 @@
 "use client"
+import { useRouter } from "next/navigation"
+import { toast } from "sonner"
 
 import { dmSans125ClassName } from "@/lib/fonts"
 import { cn } from "@lib/utils"
@@ -91,6 +93,8 @@ export default function Account() {
 	const autumn = useCustomer()
 	const [isUpgrading, setIsUpgrading] = useState(false)
 	const [deleteConfirmText, setDeleteConfirmText] = useState("")
+	const [isDeleting, setIsDeleting] = useState(false)
+	const router = useRouter()
 	const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
 	const [switchingOrgId, setSwitchingOrgId] = useState<string | null>(null)
 	const { data: allOrgs } = authClient.useListOrganizations()
@@ -142,12 +146,22 @@ export default function Account() {
 		}
 	}
 
-	const handleDeleteAccount = () => {
+	const handleDeleteAccount = async () => {
 		if (deleteConfirmText !== "DELETE") return
-		// TODO: Implement account deletion API call
-		console.log("Delete account requested")
-		setIsDeleteDialogOpen(false)
-		setDeleteConfirmText("")
+
+		setIsDeleting(true)
+		try {
+			await authClient.deleteUser()
+			toast.success("Account deleted successfully")
+			setIsDeleteDialogOpen(false)
+			setDeleteConfirmText("")
+			router.push("/")
+		} catch (error) {
+			console.error("Failed to delete account:", error)
+			toast.error("Failed to delete account. Please try again.")
+		} finally {
+			setIsDeleting(false)
+		}
 	}
 
 	const isDeleteEnabled = deleteConfirmText === "DELETE"
@@ -842,7 +856,7 @@ export default function Account() {
 										<button
 											type="button"
 											onClick={handleDeleteAccount}
-											disabled={!isDeleteEnabled}
+											disabled={!isDeleteEnabled || isDeleting}
 											className={cn(
 												"relative flex items-center gap-1.5 pl-4 pr-[18px] py-2 rounded-full",
 												"bg-[#290F0A] text-[#C73B1B]",
@@ -853,8 +867,17 @@ export default function Account() {
 												dmSans125ClassName(),
 											)}
 										>
-											<Trash2 className="size-[18px]" />
-											<span>Delete</span>
+											{isDeleting ? (
+												<>
+													<LoaderIcon className="size-[18px] animate-spin" />
+													<span>Deleting...</span>
+												</>
+											) : (
+												<>
+													<Trash2 className="size-[18px]" />
+													<span>Delete</span>
+												</>
+											)}
 											<div className="absolute inset-0 pointer-events-none rounded-[inherit] shadow-[inset_1.5px_1.5px_4.5px_rgba(0,0,0,0.4)]" />
 										</button>
 									</div>

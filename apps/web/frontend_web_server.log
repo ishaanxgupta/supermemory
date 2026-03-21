@@ -1,0 +1,75 @@
+$ next dev
+[@sentry/nextjs] DEPRECATION WARNING: disableLogger is deprecated and will be removed in a future version. Use webpack.treeshake.removeDebugLogging instead. (Not supported with Turbopack.)
+[@sentry/nextjs] DEPRECATION WARNING: automaticVercelMonitors is deprecated and will be removed in a future version. Use webpack.automaticVercelMonitors instead. (Not supported with Turbopack.)
+▲ Next.js 16.1.6 (Turbopack)
+- Local:         http://localhost:3000
+- Network:       http://192.168.0.2:3000
+- Experiments (use with caution):
+  · clientTraceMetadata
+  ✓ viewTransition
+
+✓ Starting...
+Attention: Next.js now collects completely anonymous telemetry regarding usage.
+This information is used to shape Next.js' roadmap and prioritize features.
+You can learn more, including how to opt-out if you'd not like to participate in this anonymous program, by visiting the following URL:
+https://nextjs.org/telemetry
+
+⚠ The "middleware" file convention is deprecated. Please use "proxy" instead. Learn more: https://nextjs.org/docs/messages/middleware-to-proxy
+✓ Ready in 9.4s
+[PROXY] === PROXY START ===
+[PROXY] Path: /settings
+[PROXY] Method: GET
+[PROXY] Session cookie exists: false
+[PROXY] No session cookie and not on public path, redirecting to /login
+○ Compiling /login ...
+ GET /login?redirect=http%3A%2F%2Flocalhost%3A3000%2Fsettings 200 in 17.5s (compile: 15.9s, render: 1640ms)
+(node:5838) [DEP0060] DeprecationWarning: The `util._extend` API is deprecated. Please use Object.assign() instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+○ Compiling /login/new ...
+✓ Finished writing to filesystem cache in 11.5s
+ GET /login/new 200 in 7.7s (compile: 7.4s, render: 373ms)
+[PROXY] === PROXY START ===
+[PROXY] Path: /settings
+[PROXY] Method: GET
+[PROXY] Session cookie exists: false
+[PROXY] No session cookie and not on public path, redirecting to /login
+ GET /login?redirect=http%3A%2F%2Flocalhost%3A3000%2Fsettings 200 in 96ms (compile: 10ms, render: 87ms)
+ GET /login/new 200 in 121ms (compile: 7ms, render: 114ms)
+[PROXY] === PROXY START ===
+[PROXY] Path: /settings
+[PROXY] Method: GET
+[PROXY] Session cookie exists: false
+[PROXY] No session cookie and not on public path, redirecting to /login
+ GET /login?redirect=http%3A%2F%2Flocalhost%3A3000%2Fsettings 200 in 90ms (compile: 6ms, render: 84ms)
+ GET /login/new 200 in 93ms (compile: 5ms, render: 88ms)
+[PROXY] === PROXY START ===
+[PROXY] Path: /settings
+[PROXY] Method: GET
+[PROXY] Session cookie exists: false
+[PROXY] No session cookie and not on public path, redirecting to /login
+ GET /login?redirect=http%3A%2F%2Flocalhost%3A3000%2Fsettings 200 in 71ms (compile: 4ms, render: 67ms)
+ GET /login/new 200 in 99ms (compile: 5ms, render: 94ms)
+[PROXY] === PROXY START ===
+[PROXY] Path: /
+[PROXY] Method: GET
+[PROXY] Session cookie exists: true
+[PROXY] Passing through to next handler
+[PROXY] === PROXY END ===
+○ Compiling / ...
+ GET / 200 in 37.4s (compile: 35.6s, proxy.ts: 11ms, render: 1774ms)
+✓ Finished writing to filesystem cache in 11.9s
+[PROXY] === PROXY START ===
+[PROXY] Path: /settings
+[PROXY] Method: GET
+[PROXY] Session cookie exists: true
+[PROXY] Passing through to next handler
+[PROXY] === PROXY END ===
+○ Compiling /settings ...
+ GET /settings 200 in 6.0s (compile: 5.6s, proxy.ts: 16ms, render: 392ms)
+[PROXY] === PROXY START ===
+[PROXY] Path: /
+[PROXY] Method: GET
+[PROXY] Session cookie exists: true
+[PROXY] Passing through to next handler
+[PROXY] === PROXY END ===
+ GET / 200 in 147ms (compile: 74ms, proxy.ts: 26ms, render: 47ms)
