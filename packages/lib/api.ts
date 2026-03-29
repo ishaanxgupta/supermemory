@@ -10,6 +10,7 @@ import {
 	CreateProjectSchema,
 	DeleteProjectResponseSchema,
 	DeleteProjectSchema,
+	DocumentWithMemoriesSchema,
 	DocumentsWithMemoriesQuerySchema,
 	DocumentsWithMemoriesResponseSchema,
 	ListContainerTagsResponseSchema,
@@ -166,12 +167,13 @@ export const apiSchema = createSchema({
 	},
 
 	"@get/documents/:id": {
-		output: z.any(),
+		output: DocumentWithMemoriesSchema,
+		params: z.object({ id: z.string() }),
 	},
 
 	// Delete a memory
 	"@delete/documents/:id": {
-		output: z.any(), // 204 No-Content
+		output: z.undefined(), // 204 No-Content
 		params: z.object({ id: z.string() }),
 	},
 

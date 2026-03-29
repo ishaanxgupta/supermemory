@@ -171,7 +171,6 @@ export function ChatSidebar({ formData }: ChatSidebarProps) {
 				try {
 					const response = await $fetch("@get/documents/:id", {
 						params: { id: documentIds[0] ?? "" },
-						disableValidation: true,
 					})
 
 					console.log("response", response)
