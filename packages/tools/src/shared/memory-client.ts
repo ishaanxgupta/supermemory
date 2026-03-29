@@ -196,10 +196,7 @@ export const extractQueryText = (
 		return ""
 	}
 
-	const userMessage = messages
-		.slice()
-		.reverse()
-		.find((msg) => msg.role === "user")
+	const userMessage = messages.findLast((msg) => msg.role === "user")
 
 	const content = userMessage?.content
 	if (!content) return ""
@@ -243,10 +240,7 @@ export const extractQueryText = (
 export const getLastUserMessageText = (
 	messages: GenericMessage[],
 ): string | undefined => {
-	const lastUserMessage = messages
-		.slice()
-		.reverse()
-		.find((msg) => msg.role === "user")
+	const lastUserMessage = messages.findLast((msg) => msg.role === "user")
 
 	if (!lastUserMessage) {
 		return undefined
