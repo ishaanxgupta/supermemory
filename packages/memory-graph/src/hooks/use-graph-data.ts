@@ -204,9 +204,19 @@ export function useGraphData(
 		// k-NN: Each document compares with k neighbors (configurable)
 		const { maxComparisonsPerDoc, threshold } = SIMILARITY_CONFIG
 
+		// Pre-process embeddings to avoid creating new arrays inside the nested loops
+		const embeddings = filteredDocuments.map((doc) =>
+			Array.isArray(doc?.summaryEmbedding)
+				? doc.summaryEmbedding
+				: doc?.summaryEmbedding
+					? Array.from(doc.summaryEmbedding)
+					: null,
+		)
+
 		for (let i = 0; i < filteredDocuments.length; i++) {
 			const docI = filteredDocuments[i]
-			if (!docI) continue
+			const embI = embeddings[i]
+			if (!docI || !embI) continue
 
 			// Only compare with next k documents (k-nearest neighbors approach)
 			const endIdx = Math.min(
@@ -216,12 +226,10 @@ export function useGraphData(
 
 			for (let j = i + 1; j < endIdx; j++) {
 				const docJ = filteredDocuments[j]
-				if (!docJ) continue
+				const embJ = embeddings[j]
+				if (!docJ || !embJ) continue
 
-				const sim = calculateSemanticSimilarity(
-					docI.summaryEmbedding ? Array.from(docI.summaryEmbedding) : null,
-					docJ.summaryEmbedding ? Array.from(docJ.summaryEmbedding) : null,
-				)
+				const sim = calculateSemanticSimilarity(embI, embJ)
 
 				if (sim > threshold) {
 					edges.push({
