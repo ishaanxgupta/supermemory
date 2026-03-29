@@ -85,7 +85,9 @@ async def supermemory_profile_search(
         # Fallback to requests if aiohttp not available
         import requests
 
-        response = requests.post(
+        # Run the synchronous request in a thread pool executor to avoid blocking the event loop
+        response = await asyncio.to_thread(
+            requests.post,
             "https://api.supermemory.ai/v4/profile",
             headers={
                 "Content-Type": "application/json",
@@ -194,9 +196,11 @@ async def add_system_prompt(
     if system_prompt_exists:
         logger.debug("Added memories to existing system prompt")
         return [
-            {**msg, "content": f"{msg.get('content', '')} \n {memories}"}
-            if msg.get("role") == "system"
-            else msg
+            (
+                {**msg, "content": f"{msg.get('content', '')} \n {memories}"}
+                if msg.get("role") == "system"
+                else msg
+            )
             for msg in messages
         ]
 
@@ -313,6 +317,7 @@ class SupermemoryOpenAIWrapper:
                 **kwargs: Any,
             ) -> Any:
                 return await self._create_with_memory_async(original_create, **kwargs)
+
         else:
 
             def create_with_memory(
