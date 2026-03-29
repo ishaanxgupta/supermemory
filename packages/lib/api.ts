@@ -24,6 +24,7 @@ import {
 	SearchResponseSchema,
 	type SearchResult,
 	SettingsRequestSchema,
+	DocumentWithMemoriesSchema,
 } from "../validation/api"
 
 // Settings response schema - this is custom to console (not in shared validation)
@@ -166,12 +167,12 @@ export const apiSchema = createSchema({
 	},
 
 	"@get/documents/:id": {
-		output: z.any(),
+		output: DocumentWithMemoriesSchema,
 	},
 
 	// Delete a memory
 	"@delete/documents/:id": {
-		output: z.any(), // 204 No-Content
+		output: z.undefined(), // 204 No-Content
 		params: z.object({ id: z.string() }),
 	},
 
