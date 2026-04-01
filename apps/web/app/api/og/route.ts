@@ -134,6 +134,52 @@ function resolveImageUrl(
 	}
 }
 
+
+async function safeFetch(
+	url: string,
+	options: RequestInit,
+	maxRedirects = 5,
+): Promise<Response> {
+	let currentUrl = url
+	let redirects = 0
+
+	while (redirects < maxRedirects) {
+		const response = await fetch(currentUrl, {
+			...options,
+			redirect: "manual",
+		})
+
+		if (response.status >= 300 && response.status < 400) {
+			const location = response.headers.get("location")
+			if (!location) {
+				return response
+			}
+
+			let nextUrl
+			try {
+				nextUrl = new URL(location, currentUrl)
+			} catch {
+				return response
+			}
+
+			if (!isValidUrl(nextUrl.href)) {
+				throw new Error("Invalid redirect URL protocol")
+			}
+
+			if (isPrivateHost(nextUrl.hostname)) {
+				throw new Error("Redirect to private/localhost URLs is not allowed")
+			}
+
+			currentUrl = nextUrl.href
+			redirects++
+		} else {
+			return response
+		}
+	}
+
+	throw new Error("Too many redirects")
+}
+
 export async function GET(request: Request) {
 	try {
 		const { searchParams } = new URL(request.url)
@@ -179,7 +225,7 @@ export async function GET(request: Request) {
 		const controller = new AbortController()
 		const timeoutId = setTimeout(() => controller.abort(), 8000)
 
-		const response = await fetch(trimmedUrl, {
+		const response = await safeFetch(trimmedUrl, {
 			signal: controller.signal,
 			headers: {
 				"User-Agent":
