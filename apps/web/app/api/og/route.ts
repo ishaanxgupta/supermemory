@@ -83,21 +83,7 @@ function isNonHtmlUrl(url: string): boolean {
 	}
 }
 
-function extractImageUrl(image: unknown): string | undefined {
-	if (!image) return undefined
 
-	if (typeof image === "string") {
-		return image
-	}
-
-	if (Array.isArray(image) && image.length > 0) {
-		const first = image[0]
-		if (first && typeof first === "object" && "url" in first) {
-			return String(first.url)
-		}
-	}
-	return ""
-}
 
 function extractMetaTag(html: string, patterns: RegExp[]): string {
 	for (const pattern of patterns) {
@@ -155,7 +141,7 @@ async function safeFetch(
 				return response
 			}
 
-			let nextUrl
+			let nextUrl: URL
 			try {
 				nextUrl = new URL(location, currentUrl)
 			} catch {
