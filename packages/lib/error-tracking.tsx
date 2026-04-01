@@ -117,7 +117,10 @@ export function useInteractionTracking() {
 	const { data: session } = useSession()
 	const pathname = usePathname()
 
-	const trackInteraction = (action: string, details?: Record<string, unknown>) => {
+	const trackInteraction = (
+		action: string,
+		details?: Record<string, unknown>,
+	) => {
 		if (!posthog.__loaded) return
 		posthog.capture("user_interaction", {
 			action,
