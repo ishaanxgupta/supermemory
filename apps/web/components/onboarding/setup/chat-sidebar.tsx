@@ -381,11 +381,9 @@ export function ChatSidebar({ formData }: ChatSidebarProps) {
 		setIsLoading(true)
 
 		try {
-			const documentIds: string[] = []
-
-			for (const draft of draftDocs) {
+			const promises = draftDocs.map(async (draft) => {
 				if (draft.kind === "x_research" && xResearchStatus !== "correct") {
-					continue
+					return null
 				}
 
 				try {
@@ -397,13 +395,17 @@ export function ChatSidebar({ formData }: ChatSidebarProps) {
 						},
 					})
 
-					if (docResponse.data?.id) {
-						documentIds.push(docResponse.data.id)
-					}
+					return docResponse.data?.id
 				} catch (error) {
 					console.warn("Error creating document:", error)
+					return null
 				}
-			}
+			})
+
+			const results = await Promise.all(promises)
+			const documentIds = results.filter(
+				(id): id is string => id !== null && id !== undefined,
+			)
 
 			if (documentIds.length > 0) {
 				await pollForMemories(documentIds)
