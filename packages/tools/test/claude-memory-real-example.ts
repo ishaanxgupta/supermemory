@@ -4,7 +4,10 @@
  * This shows actual tool call handling based on real Claude API responses
  */
 
-import { createClaudeMemoryTool, type MemoryCommand } from "./claude-memory"
+import {
+	createClaudeMemoryTool,
+	type MemoryCommand,
+} from "../src/claude-memory"
 
 // =====================================================
 // Real Claude API Integration
@@ -119,25 +122,24 @@ export async function realClaudeMemoryExample() {
 	const toolResults = []
 
 	if (responseData.content) {
-		for (const block of responseData.content) {
-			if (block.type === "tool_use" && block.name === "memory") {
-				console.log("\\n🔧 Processing memory tool call:")
+		const memoryToolCalls = responseData.content.filter(
+			(block: any) => block.type === "tool_use" && block.name === "memory",
+		)
+
+		const results = await Promise.all(
+			memoryToolCalls.map((block: any) => {
+				console.log("\n🔧 Processing memory tool call:")
 				console.log(`Command: ${block.input.command}`)
 				console.log(`Path: ${block.input.path}`)
 
-				// Handle the memory tool call
-				const toolResult = await handleClaudeMemoryToolCall(
-					block,
-					SUPERMEMORY_API_KEY,
-					{
-						projectId: "python-scraper-help",
-						memoryContainerTag: "claude_memory_debug",
-					},
-				)
+				return handleClaudeMemoryToolCall(block, SUPERMEMORY_API_KEY, {
+					projectId: "python-scraper-help",
+					memoryContainerTag: "claude_memory_debug",
+				})
+			}),
+		)
 
-				toolResults.push(toolResult)
-			}
-		}
+		toolResults.push(...results)
 	}
 
 	// Step 3: Send tool results back to Claude if there were any
@@ -196,16 +198,17 @@ export async function processClaudeResponse(
 	const toolResults = []
 
 	if (claudeResponseData.content) {
-		for (const block of claudeResponseData.content) {
-			if (block.type === "tool_use" && block.name === "memory") {
-				const toolResult = await handleClaudeMemoryToolCall(
-					block,
-					supermemoryApiKey,
-					config,
-				)
-				toolResults.push(toolResult)
-			}
-		}
+		const memoryToolCalls = claudeResponseData.content.filter(
+			(block: any) => block.type === "tool_use" && block.name === "memory",
+		)
+
+		const results = await Promise.all(
+			memoryToolCalls.map((block: any) =>
+				handleClaudeMemoryToolCall(block, supermemoryApiKey, config),
+			),
+		)
+
+		toolResults.push(...results)
 	}
 
 	return toolResults
