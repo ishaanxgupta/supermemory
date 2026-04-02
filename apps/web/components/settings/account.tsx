@@ -15,6 +15,7 @@ import {
 import { authClient } from "@lib/auth"
 import { Popover, PopoverContent, PopoverTrigger } from "@ui/components/popover"
 import { useCustomer } from "autumn-js/react"
+import { toast } from "sonner"
 import {
 	Check,
 	X,
@@ -90,6 +91,7 @@ export default function Account() {
 	const { user, org, setActiveOrg } = useAuth()
 	const autumn = useCustomer()
 	const [isUpgrading, setIsUpgrading] = useState(false)
+	const [isDeleting, setIsDeleting] = useState(false)
 	const [deleteConfirmText, setDeleteConfirmText] = useState("")
 	const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
 	const [switchingOrgId, setSwitchingOrgId] = useState<string | null>(null)
@@ -142,12 +144,17 @@ export default function Account() {
 		}
 	}
 
-	const handleDeleteAccount = () => {
+	const handleDeleteAccount = async () => {
 		if (deleteConfirmText !== "DELETE") return
-		// TODO: Implement account deletion API call
-		console.log("Delete account requested")
-		setIsDeleteDialogOpen(false)
-		setDeleteConfirmText("")
+		setIsDeleting(true)
+		try {
+			await authClient.deleteUser()
+			window.location.href = "/login"
+		} catch (error) {
+			console.error(error)
+			toast.error("Failed to delete account. Please try again.")
+			setIsDeleting(false)
+		}
 	}
 
 	const isDeleteEnabled = deleteConfirmText === "DELETE"
@@ -842,18 +849,22 @@ export default function Account() {
 										<button
 											type="button"
 											onClick={handleDeleteAccount}
-											disabled={!isDeleteEnabled}
+											disabled={!isDeleteEnabled || isDeleting}
 											className={cn(
 												"relative flex items-center gap-1.5 pl-4 pr-[18px] py-2 rounded-full",
 												"bg-[#290F0A] text-[#C73B1B]",
 												"font-normal text-[14px] tracking-[-0.14px]",
 												"cursor-pointer transition-opacity",
 												"disabled:opacity-40 disabled:cursor-not-allowed",
-												isDeleteEnabled && "hover:opacity-90",
+												isDeleteEnabled && !isDeleting && "hover:opacity-90",
 												dmSans125ClassName(),
 											)}
 										>
-											<Trash2 className="size-[18px]" />
+											{isDeleting ? (
+												<LoaderIcon className="size-[18px] animate-spin" />
+											) : (
+												<Trash2 className="size-[18px]" />
+											)}
 											<span>Delete</span>
 											<div className="absolute inset-0 pointer-events-none rounded-[inherit] shadow-[inset_1.5px_1.5px_4.5px_rgba(0,0,0,0.4)]" />
 										</button>
