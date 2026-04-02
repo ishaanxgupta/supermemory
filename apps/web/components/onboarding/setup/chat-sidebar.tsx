@@ -76,7 +76,9 @@ export function ChatSidebar({ formData }: ChatSidebarProps) {
 	const isProcessingRef = useRef(false)
 	const draftRequestIdRef = useRef(0)
 
-	const backendUrl = new URL(process.env.NEXT_PUBLIC_BACKEND_URL!)
+	const backendUrl = new URL(
+		process.env.NEXT_PUBLIC_BACKEND_URL || "https://api.supermemory.ai",
+	)
 	const agent = useAgent({
 		agent: "chat-agent",
 		name: user?.id ?? "anonymous",
@@ -546,6 +548,7 @@ export function ChatSidebar({ formData }: ChatSidebarProps) {
 					<div className="flex-1 flex flex-col px-4 space-y-3 pb-4 justify-end overflow-y-auto scrollbar-thin">
 						{timelineMessages.map((msg, i) => (
 							<div
+								// biome-ignore lint/suspicious/noArrayIndexKey: append-only timeline
 								key={`message-${i}-${msg.message}`}
 								className="flex items-start gap-2"
 							>
@@ -675,6 +678,7 @@ export function ChatSidebar({ formData }: ChatSidebarProps) {
 												if (part.type === "text") {
 													return (
 														<div
+															// biome-ignore lint/suspicious/noArrayIndexKey: parts do not change order
 															key={`${msg.id}-${partIndex}`}
 															className="text-sm text-white/90 chat-markdown-content"
 														>
@@ -689,6 +693,7 @@ export function ChatSidebar({ formData }: ChatSidebarProps) {
 													) {
 														return (
 															<div
+																// biome-ignore lint/suspicious/noArrayIndexKey: parts do not change order
 																key={`${msg.id}-${partIndex}`}
 																className="text-xs text-white/50 italic"
 															>
