@@ -40,6 +40,10 @@ interface DraftDoc {
 }
 
 export function ChatSidebar({ formData }: ChatSidebarProps) {
+	const isValidDocId = (
+		id: string | null | undefined,
+	): id is string => !!id
+
 	const { user } = useAuth()
 	const { selectedProject } = useProject()
 	const isMobile = useIsMobile()
@@ -397,7 +401,7 @@ export function ChatSidebar({ formData }: ChatSidebarProps) {
 						},
 					})
 
-					if (docResponse.data?.id) {
+					if (isValidDocId(docResponse.data?.id)) {
 						documentIds.push(docResponse.data.id)
 					}
 				} catch (error) {
