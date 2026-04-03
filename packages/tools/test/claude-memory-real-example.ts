@@ -4,7 +4,7 @@
  * This shows actual tool call handling based on real Claude API responses
  */
 
-import { createClaudeMemoryTool, type MemoryCommand } from "./claude-memory"
+import { createClaudeMemoryTool, type MemoryCommand } from "../src/claude-memory"
 
 // =====================================================
 // Real Claude API Integration
@@ -116,28 +116,26 @@ export async function realClaudeMemoryExample() {
 	console.log(JSON.stringify(responseData, null, 2))
 
 	// Step 2: Handle any tool calls
-	const toolResults = []
+	let toolResults: any[] = []
 
 	if (responseData.content) {
-		for (const block of responseData.content) {
-			if (block.type === "tool_use" && block.name === "memory") {
+		const toolBlocks = responseData.content.filter(
+			(block: any) => block.type === "tool_use" && block.name === "memory",
+		)
+
+		toolResults = await Promise.all(
+			toolBlocks.map(async (block: any) => {
 				console.log("\\n🔧 Processing memory tool call:")
 				console.log(`Command: ${block.input.command}`)
 				console.log(`Path: ${block.input.path}`)
 
 				// Handle the memory tool call
-				const toolResult = await handleClaudeMemoryToolCall(
-					block,
-					SUPERMEMORY_API_KEY,
-					{
-						projectId: "python-scraper-help",
-						memoryContainerTag: "claude_memory_debug",
-					},
-				)
-
-				toolResults.push(toolResult)
-			}
-		}
+				return handleClaudeMemoryToolCall(block, SUPERMEMORY_API_KEY, {
+					projectId: "python-scraper-help",
+					memoryContainerTag: "claude_memory_debug",
+				})
+			}),
+		)
 	}
 
 	// Step 3: Send tool results back to Claude if there were any
@@ -195,20 +193,19 @@ export async function processClaudeResponse(
 ): Promise<any[]> {
 	const toolResults = []
 
-	if (claudeResponseData.content) {
-		for (const block of claudeResponseData.content) {
-			if (block.type === "tool_use" && block.name === "memory") {
-				const toolResult = await handleClaudeMemoryToolCall(
-					block,
-					supermemoryApiKey,
-					config,
-				)
-				toolResults.push(toolResult)
-			}
-		}
+	if (!claudeResponseData.content) {
+		return []
 	}
 
-	return toolResults
+	const toolBlocks = claudeResponseData.content.filter(
+		(block: any) => block.type === "tool_use" && block.name === "memory",
+	)
+
+	return Promise.all(
+		toolBlocks.map((block: any) =>
+			handleClaudeMemoryToolCall(block, supermemoryApiKey, config),
+		),
+	)
 }
 
 // =====================================================
