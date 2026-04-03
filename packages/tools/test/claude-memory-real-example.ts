@@ -122,13 +122,21 @@ export async function realClaudeMemoryExample() {
 	const toolResults = []
 
 	if (responseData.content) {
-    const memoryToolCalls = responseData.content.filter(
-      (block: any): block is { type: 'tool_use'; id: string; name: 'memory'; input: { command: MemoryCommand; path: string } } =>
-        block.type === "tool_use" && block.name === "memory",
-    )
+		const memoryToolCalls = responseData.content.filter(
+			(
+				block: unknown,
+			): block is {
+				type: "tool_use"
+				id: string
+				name: "memory"
+				input: { command: MemoryCommand; path: string }
+			} =>
+				(block as { type?: string }).type === "tool_use" &&
+				(block as { name?: string }).name === "memory",
+		)
 
 		const results = await Promise.all(
-			memoryToolCalls.map((block: any) => {
+			memoryToolCalls.map((block) => {
 				console.log("\n🔧 Processing memory tool call:")
 				console.log(`Command: ${block.input.command}`)
 				console.log(`Path: ${block.input.path}`)
@@ -188,24 +196,33 @@ export async function realClaudeMemoryExample() {
  * Simplified function to process Claude tool calls
  */
 export async function processClaudeResponse(
-	claudeResponseData: any,
+	claudeResponseData: unknown,
 	supermemoryApiKey: string,
 	config?: {
 		projectId?: string
 		memoryContainerTag?: string
 		baseUrl?: string
 	},
-): Promise<any[]> {
+): Promise<unknown[]> {
 	const toolResults = []
 
 	if (claudeResponseData.content) {
-    const memoryToolCalls = claudeResponseData.content.filter(
-      (block: any): block is { type: 'tool_use'; id: string; name: 'memory'; input: { command: MemoryCommand; path: string } } =>
-        block.type === "tool_use" && block.name === "memory",
-    )
+		const memoryToolCalls =
+			(claudeResponseData as { content?: unknown[] }).content?.filter(
+				(
+					block: unknown,
+				): block is {
+					type: "tool_use"
+					id: string
+					name: "memory"
+					input: { command: MemoryCommand; path: string }
+				} =>
+					(block as { type?: string }).type === "tool_use" &&
+					(block as { name?: string }).name === "memory",
+			) || []
 
 		const results = await Promise.all(
-			memoryToolCalls.map((block: any) =>
+			memoryToolCalls.map((block) =>
 				handleClaudeMemoryToolCall(block, supermemoryApiKey, config),
 			),
 		)
