@@ -39,7 +39,12 @@ def _get_last_user_message(messages: Any) -> str:
     if not messages:
         return ""
 
-    for msg in reversed(list(messages)):
+    # Use reversed() directly if it's already a sequence to avoid O(N) copy
+    messages_seq = (
+        messages if isinstance(messages, (list, tuple)) else list(messages)
+    )
+
+    for msg in reversed(messages_seq):
         role = None
         content = None
 
