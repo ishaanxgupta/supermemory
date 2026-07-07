@@ -249,7 +249,12 @@ class SupermemoryContextProvider(BaseContextProvider):
         if not messages:
             return ""
 
-        for msg in reversed(list(messages)):
+        try:
+            it = reversed(messages)
+        except TypeError:
+            it = reversed(list(messages))
+
+        for msg in it:
             role = None
             content = None
 
