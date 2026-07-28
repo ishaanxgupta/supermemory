@@ -18,6 +18,7 @@ Usage:
    python mem0-migration-script.py
 """
 
+import concurrent.futures
 import json
 import os
 import time
@@ -112,6 +113,94 @@ def export_from_mem0(
         raise
 
 
+def _process_memory(args) -> dict:
+    i, memory, total_memories, client = args
+    try:
+        # Check if content exists
+        content = memory.get("content", "").strip()
+        if not content:
+            print(f"⚠️  [{i}/{total_memories}] Skipping: No content")
+            return {"status": "skipped", "error": None}
+
+        # Build container tags
+        container_tags = ["imported_from_mem0"]
+
+        # Add user tag if present (handle None values)
+        user_id = memory.get("user_id")
+        if user_id and user_id != "None":
+            container_tags.append(f"user_{user_id}")
+
+        # Add agent tag if present
+        agent_id = memory.get("agent_id")
+        if agent_id and agent_id != "None":
+            container_tags.append(f"agent_{agent_id}")
+
+        # Add app tag if present
+        app_id = memory.get("app_id")
+        if app_id and app_id != "None":
+            container_tags.append(f"app_{app_id}")
+
+        # Add session tag if present
+        session_id = memory.get("session_id")
+        if session_id and session_id != "None":
+            container_tags.append(f"session_{session_id}")
+
+        # Generate a unique ID if Mem0 didn't provide one
+        memory_id = memory.get("id")
+        if not memory_id or memory_id == "None":
+            # Use content hash for uniqueness
+            import hashlib
+
+            memory_id = hashlib.md5(content.encode()).hexdigest()[:8]
+
+        # Prepare metadata
+        metadata = {
+            "source": "mem0_migration",
+            "migration_date": datetime.now().isoformat(),
+        }
+
+        # Add original ID if it existed
+        if memory.get("id") and memory["id"] != "None":
+            metadata["original_id"] = memory["id"]
+
+        # Add timestamps if available and not None
+        created_at = memory.get("created_at")
+        if created_at and created_at != "None":
+            metadata["original_created_at"] = created_at
+
+        updated_at = memory.get("updated_at")
+        if updated_at and updated_at != "None":
+            metadata["original_updated_at"] = updated_at
+
+        # Add hash information if available
+        hash_val = memory.get("hash")
+        if hash_val and hash_val != "None":
+            metadata["original_hash"] = hash_val
+
+        prev_hash = memory.get("prev_hash")
+        if prev_hash and prev_hash != "None":
+            metadata["original_prev_hash"] = prev_hash
+
+        # Merge with existing metadata if it's a valid dict
+        if memory.get("metadata") and isinstance(memory["metadata"], dict):
+            metadata.update(memory["metadata"])
+
+        # Import to Supermemory
+        result = client.add(
+            content=content,
+            container_tags=container_tags,
+            custom_id=f"mem0_{memory_id}",
+            metadata=metadata,
+        )
+
+        print(f"✅ [{i}/{total_memories}] Imported: {content[:50]}...")
+        return {"status": "imported", "error": None}
+
+    except Exception as e:
+        print(f"❌ [{i}/{total_memories}] Failed: {str(e)}")
+        return {"status": "failed", "error": str(e)}
+
+
 def import_to_supermemory(mem0_data: Dict[str, Any], api_key: str) -> Dict[str, int]:
     """
     Import Mem0 memories into Supermemory
@@ -129,98 +218,30 @@ def import_to_supermemory(mem0_data: Dict[str, Any], api_key: str) -> Dict[str, 
     # Statistics
     stats = {"imported": 0, "failed": 0, "skipped": 0}
 
-    print(f"📦 Processing {len(memories)} memories...")
+    total_memories = len(memories)
+    print(f"📦 Processing {total_memories} memories...")
 
-    for i, memory in enumerate(memories, 1):
-        try:
-            # Check if content exists
-            content = memory.get("content", "").strip()
-            if not content:
-                print(f"⚠️  [{i}/{len(memories)}] Skipping: No content")
-                stats["skipped"] += 1
-                continue
+    batch_size = 10
 
-            # Build container tags
-            container_tags = ["imported_from_mem0"]
+    # Process in batches of 10 to respect rate limits while gaining concurrency
+    for batch_start in range(0, total_memories, batch_size):
+        batch_end = min(batch_start + batch_size, total_memories)
+        batch = memories[batch_start:batch_end]
 
-            # Add user tag if present (handle None values)
-            user_id = memory.get("user_id")
-            if user_id and user_id != "None":
-                container_tags.append(f"user_{user_id}")
+        args_list = [
+            (batch_start + j + 1, memory, total_memories, client)
+            for j, memory in enumerate(batch)
+        ]
 
-            # Add agent tag if present
-            agent_id = memory.get("agent_id")
-            if agent_id and agent_id != "None":
-                container_tags.append(f"agent_{agent_id}")
+        with concurrent.futures.ThreadPoolExecutor(max_workers=batch_size) as executor:
+            results = list(executor.map(_process_memory, args_list))
 
-            # Add app tag if present
-            app_id = memory.get("app_id")
-            if app_id and app_id != "None":
-                container_tags.append(f"app_{app_id}")
+        for result in results:
+            stats[result["status"]] += 1
 
-            # Add session tag if present
-            session_id = memory.get("session_id")
-            if session_id and session_id != "None":
-                container_tags.append(f"session_{session_id}")
-
-            # Generate a unique ID if Mem0 didn't provide one
-            memory_id = memory.get("id")
-            if not memory_id or memory_id == "None":
-                # Use content hash for uniqueness
-                import hashlib
-
-                memory_id = hashlib.md5(content.encode()).hexdigest()[:8]
-
-            # Prepare metadata
-            metadata = {
-                "source": "mem0_migration",
-                "migration_date": datetime.now().isoformat(),
-            }
-
-            # Add original ID if it existed
-            if memory.get("id") and memory["id"] != "None":
-                metadata["original_id"] = memory["id"]
-
-            # Add timestamps if available and not None
-            created_at = memory.get("created_at")
-            if created_at and created_at != "None":
-                metadata["original_created_at"] = created_at
-
-            updated_at = memory.get("updated_at")
-            if updated_at and updated_at != "None":
-                metadata["original_updated_at"] = updated_at
-
-            # Add hash information if available
-            hash_val = memory.get("hash")
-            if hash_val and hash_val != "None":
-                metadata["original_hash"] = hash_val
-
-            prev_hash = memory.get("prev_hash")
-            if prev_hash and prev_hash != "None":
-                metadata["original_prev_hash"] = prev_hash
-
-            # Merge with existing metadata if it's a valid dict
-            if memory.get("metadata") and isinstance(memory["metadata"], dict):
-                metadata.update(memory["metadata"])
-
-            # Import to Supermemory
-            result = client.add(
-                content=content,
-                container_tags=container_tags,
-                custom_id=f"mem0_{memory_id}",
-                metadata=metadata,
-            )
-
-            stats["imported"] += 1
-            print(f"✅ [{i}/{len(memories)}] Imported: {content[:50]}...")
-
-            # Small delay to avoid rate limiting
-            if i % 10 == 0:
-                time.sleep(0.5)
-
-        except Exception as e:
-            stats["failed"] += 1
-            print(f"❌ [{i}/{len(memories)}] Failed: {str(e)}")
+        # Small delay between batches to avoid rate limiting
+        if batch_end < total_memories:
+            time.sleep(0.5)
 
     return stats
 
